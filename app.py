@@ -24,10 +24,10 @@ def submit_survey():
     if payload is None:
         return jsonify({"error": "invalid_json", "detail": "Body must be application/json"}), 400
 
-    try:
-        if "user_agent" not in payload:
+    if "user_agent" not in payload:
             payload["user_agent"] = request.headers.get("User-Agent")
 
+    try:  
         submission = SurveySubmission(**payload)
     except ValidationError as ve:
         return jsonify({"error": "validation_error", "detail": ve.errors()}), 422
