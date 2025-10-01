@@ -40,7 +40,7 @@ class SurveySubmission(BaseModel):
         if v:
             return v
         email = values.get("email")
-        now = datetime.utcnow().strftime("%Y%m%d%H%")
+        now = datetime.utcnow().strftime("%Y%m%d%H")
         return sha256_hash(email + now) if email else None
         
 #Good example of inheritance
