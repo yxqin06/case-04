@@ -26,24 +26,24 @@ class SurveySubmission(BaseModel):
         if v is not True:
             raise ValueError("consent must be true")
         return v
-    
-    @validator("email", pre=True)
-    def _hash_email(cls, v):
-        return sha256_hash(v)
-    
-    @validator("age", pre=True)
-    def _hash_age(cls, v):
-        return sha256_hash(str(v))
-
-    @validator("submission_id", always=True, pre=True)
-    def _generate_submission_id(cls, v, values):
-        if v:
-            return v
-        email = values.get("email")
-        now = datetime.utcnow().strftime("%Y%m%d%H")
-        return sha256_hash(email + now) if email else None
         
 #Good example of inheritance
 class StoredSurveyRecord(SurveySubmission):
     received_at: datetime
     ip: str
+    @classmethod
+    def from_submission(cls, sub: SurveySubmission, ip: str):
+        hashed_email = sha256_hash(sub.email)
+        hashed_age = sha256_hash(str(sub.age))
+        submission_id = sub.submission_id
+        if not submission_id:
+            now = datetime.utcnow().strftime("%Y%m%d%H")
+            submission_id = sha256_hash(hashed_email + now)
+        return cls(
+            **sub.dict(exclude={"submission_id", "email", "age}),
+            email=hashed_email,
+            age=hashed_age,
+            submission_id=submission_id,
+            received_at=datetime.utcnow(),
+            ip=ip
+        )
